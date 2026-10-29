@@ -8,6 +8,10 @@ A beginner-friendly deep learning project that classifies microscope images of p
 
 Given a single cell image, the model predicts one of 8 classes: neutrophil, eosinophil, basophil, lymphocyte, monocyte, immature granulocyte (ig), erythroblast, or platelet.
 
+![One random test image from each class](images/sample_cells.png)
+
+*One random test image from each class. Images come from the Acevedo et al. (2020) dataset described below.*
+
 ## Dataset
 
 - **Source:** Acevedo et al., "A dataset of microscopic peripheral blood cell images for development of automatic recognition systems," *Data in Brief*, 2020 (hosted on Mendeley Data).
@@ -49,6 +53,10 @@ F1 score per class on the test set:
 ## What the errors look like
 
 Most mistakes involve one pair: **neutrophils and immature granulocytes (ig)**. As I understand the dataset, the neutrophil class includes band forms and the ig class includes metamyelocytes, myelocytes and promyelocytes, so the confusion sits on the band / metamyelocyte border, a call that is subjective even between trained people. Reviewing the mistakes by eye, roughly half looked like reasonable calls a human could also make.
+
+![v2 confusion matrix on the test set](images/confusion_matrix_v2.png)
+
+*Confusion matrix for v2 on the test set. Rows are the true cell type, columns are what the model said, and the diagonal is correct answers.*
 
 v2 shifted that decision line: ig recall rose from 0.959 to 0.982, while ig precision fell from 0.974 to 0.962 and neutrophil recall fell from 0.976 to 0.968. In other words, v2 flags more borderline cells as immature.
 
