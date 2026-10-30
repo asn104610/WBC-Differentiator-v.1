@@ -52,7 +52,7 @@ F1 score per class on the test set:
 
 ## What the errors look like
 
-Most mistakes involve one pair: **neutrophils and immature granulocytes (ig)**. As I understand the dataset, the neutrophil class includes band forms and the ig class includes metamyelocytes, myelocytes and promyelocytes, so the confusion sits on the band / metamyelocyte border, a call that is subjective even between trained people. Reviewing the mistakes by eye, roughly half looked like reasonable calls a human could also make.
+About half of the mistakes (18 of 36 for v2 on the test set) involve one pair: **neutrophils and immature granulocytes (ig)**. As I understand the dataset, the neutrophil class includes band forms and the ig class includes metamyelocytes, myelocytes and promyelocytes, so the confusion sits on the band / metamyelocyte border, a call that is subjective even between trained people. Reviewing the mistakes by eye, roughly half looked like reasonable calls a human could also make.
 
 ![v2 confusion matrix on the test set](images/confusion_matrix_v2.png)
 
