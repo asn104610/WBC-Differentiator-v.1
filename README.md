@@ -38,6 +38,8 @@ Given a single cell image, the model predicts one of 8 classes: neutrophil, eosi
 
 The overall difference between v1 and v2 is small, about 5 images out of 2,564, and is within the range of normal variation.
 
+These scores are for images from the same lab as the training data. On a second lab's images, v2 scored 27.2% (see [External test](#external-test-a-second-labs-images-mll23) below).
+
 F1 score per class on the test set:
 
 | Class | v1 | v2 |
@@ -83,15 +85,70 @@ On neutrophils that v2 called ig, the heat also lands on the cell itself, but th
 | 0.95 | 4.6% | 28 of 36 |
 | 0.99 | 9.4% | 32 of 36 |
 
-Four mistakes were made with 99% or higher confidence, so confidence alone cannot catch every error. This was an exploratory look at the test set. A threshold for real use would need to be chosen on the validation set and then confirmed.
+Four mistakes were made with 99% or higher confidence, so confidence alone cannot catch every error. This was an exploratory look at the test set. A threshold for real use would need to be chosen on the validation set and then confirmed. On a second lab's images this check did not hold up (see the external test below).
+
+## External test: a second lab's images (MLL23)
+
+I ran the v2 model, with no retraining, on images from a different lab to see whether the home result carries over. It does not.
+
+**Headline result:** 27.2% accuracy (6,062 of 22,322 images) on the 7 classes that match between the two datasets, against 98.6% on the home test split. Mean per-class recall was about 44%.
+
+**Data:** MLL23, from the Munich Leukemia Laboratory (288 x 288 px images, 18 classes, patients with and without blood disease). Classes were mapped to this project's classes:
+
+- neutrophil: MLL23 segmented neutrophils
+- eosinophil, basophil, monocyte: same names
+- lymphocyte: MLL23 typical lymphocytes only
+- erythroblast: MLL23 "normoblast"
+- ig: MLL23 metamyelocyte, myelocyte and promyelocyte (1,975 images)
+
+Platelets have no counterpart in MLL23. MLL23 band neutrophils (687 images) were left out of the headline number. The class mapping is my own and has not been reviewed by a hematologist; in particular, I have not confirmed that MLL23 "normoblast" and the Barcelona "erythroblast" class are defined the same way.
+
+| MLL23 class | Called correctly |
+|---|---|
+| normoblast (erythroblast) | 95% |
+| monocyte | 93% |
+| basophil | 57% |
+| ig | 54% |
+| lymphocyte | 4% |
+| eosinophil | 3% |
+| neutrophil (segmented) | 0.5% |
+
+About 65% of all predictions were "monocyte". The 93% monocyte recall mostly reflects that it was the model's default answer: only about 16% of its monocyte calls were right.
+
+**Confidence did not warn of the problem.** About half of all predictions came at 90% confidence or higher, and only 39.6% of those were correct (roughly 6,700 confidently wrong answers). Flagging everything below 99% confidence would catch about 90% of mistakes but flag about 82% of all images. On the home test set, flagging low-confidence cells worked much better, so that check does not carry over to a new lab.
+
+### Exploratory diagnostics
+
+To look for causes, I ran the model on one balanced random sample of 2,100 MLL23 images (300 for each of the 7 classes) with simple changes, one run each. These are diagnostics, not an improved model: I chose the settings while looking at MLL23 results, so the numbers are descriptive. With 7 classes, guessing would score about 14%, and differences under about 2 points are within noise. The official external result stays 27.2%.
+
+| Change to the MLL23 images | Accuracy | Predicted as monocyte |
+|---|---|---|
+| None (baseline) | 45.0% | 52.8% |
+| Shrink image to 80% of the frame (padded border) | 51.0% | 51.0% |
+| Shrink image to 65% of the frame | 56.5% | 35.0% |
+| Shrink image to 50% of the frame | 46.9% | 19.7% |
+| Match full color histogram to one Barcelona image | 17.1% | 1.6% |
+| Same, plus shrink to 65% | 19.2% | 0.1% |
+| Shift background color to Barcelona's | 49.2% | 20.4% |
+| Background shift plus shrink to 65% | 63.4% | 15.2% |
+
+What I take from this, with caution:
+
+- Shrinking the image helped most (about 11 points at 65%), the background shift helped a little (about 4 points), and the two together reached 63.4%. Even the best case is far below the 98.6% home result.
+- The full histogram-matching attempt made things much worse. It visibly distorted the cells, so it says nothing either way about stain. I kept it in the notebook as a failed attempt.
+- Not tested: stain hue of cells and nuclei, patient mix (MLL23 includes people with blood disease; the Barcelona set does not), differences in how cells are labeled, and optics or focus.
+- A label-free alarm based on the mix of predicted classes would have caught the collapse onto "monocyte", but it would not catch every error (at 63.4% accuracy the mix looked normal). This is an idea, not a tested rule.
+
+The code is in `06_external_test.ipynb`.
 
 ## Limitations
 
-- All images come from one source (one lab, one scanner, one staining routine). Performance on slides from elsewhere is unknown and is likely lower.
+- All images come from one source (one lab, one scanner, one staining routine). On a second lab's images the model scored 27.2% (see the external test above), so results from this lab should not be assumed to carry over to other labs.
 - The split was random by image. If near-identical images from the same slide landed in both train and test, scores may be slightly optimistic.
 - The model must pick one of 8 labels. It has no "none of the above" option and will give a confident answer even for a non-cell image.
 - Heat maps are coarse and show where the model looked, not a full explanation of its reasoning. The confidence results come from the test set and are exploratory.
 - Only 8 types of normal cells are covered. Abnormal cells, artifacts and other classes are not, and the training images come from people without infection or hematologic disease.
+- The external test and its diagnostics are exploratory: one random sample, settings chosen while looking at the results, and a class mapping that has not been reviewed by a hematologist.
 
 ## Repo contents
 
@@ -101,6 +158,7 @@ Four mistakes were made with 99% or higher confidence, so confidence alone canno
 - `03_train_resnet18.ipynb`: first training run (v1)
 - `04_review_and_test.ipynb`: error review, v2 training, test results
 - `05_heatmaps.ipynb`: Grad-CAM heat maps and the confidence check
+- `06_external_test.ipynb`: external test on MLL23 images, confidence check and the scale and color diagnostics
 - `train.csv`, `val.csv`, `test.csv`: the exact data split
 - `images/`: figures used in this README
 - `requirements.txt`: Python packages for the local notebooks
@@ -113,13 +171,16 @@ Model weights are kept outside the repo in Google Drive.
 2. Create a virtual environment and install `requirements.txt`.
 3. Run notebooks 01 and 02 locally to explore and split the data.
 4. Run notebooks 03, 04 and 05 in Google Colab with a GPU (the paths in the CSVs are rewritten there).
+5. Notebook 06 also runs in Colab. It downloads about 5.4 GB of MLL23 class zips from Zenodo (roughly 20 to 35 minutes) and loads the v2 weights from Google Drive.
 
 ## License and attribution
 
-The cell images come from a dataset licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). This project is not endorsed by the dataset authors.
+The cell images come from two datasets, both licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). This project is not endorsed by the authors of either dataset.
 
 - **Dataset:** Acevedo A, Merino A, Alférez S, Molina Á, Boldú L, Rodellar J. "A dataset for microscopic peripheral blood cell images for development of automatic recognition systems." Mendeley Data, V1, 2020. DOI: [10.17632/snkd93bnjr.1](https://data.mendeley.com/datasets/snkd93bnjr/1)
 - **Data article:** Acevedo A, Merino A, Alférez S, Molina Á, Boldú L, Rodellar J. "A dataset of microscopic peripheral blood cell images for development of automatic recognition systems." *Data in Brief*. 2020;30:105474. doi: [10.1016/j.dib.2020.105474](https://doi.org/10.1016/j.dib.2020.105474)
 - **Related paper:** Acevedo A, Alférez S, Merino A, Puigví L, Rodellar J. "Recognition of peripheral blood cell images using convolutional neural networks." *Computer Methods and Programs in Biomedicine*. 2019;180:105020. doi: [10.1016/j.cmpb.2019.105020](https://doi.org/10.1016/j.cmpb.2019.105020)
+- **External test dataset (MLL23):** Shetab Boushehri S, Gruber A, Sun X, Kazeminia S, Matek C, Hehr M, Spiekermann K, Pohlkamp C, Haferlach T, Marr C. "A large publicly available single-cell peripheral blood dataset (MLL23)." Zenodo, version v1. DOI: [10.5281/zenodo.14277609](https://doi.org/10.5281/zenodo.14277609)
+- **MLL23 paper:** Shetab Boushehri S, Kazeminia S, et al. "A large expert-annotated single-cell peripheral blood dataset for hematological disease diagnostics." *Scientific Data*. 2025;12:1773. doi: [10.1038/s41597-025-06223-x](https://doi.org/10.1038/s41597-025-06223-x)
 
-**Changes made:** the images were resized to 224 x 224 pixels for model training, and the figure `images/sample_cells.png` shows a selection of images arranged in a labeled grid. The dataset authors state the data is intended for research and educational purposes only.
+**Changes made:** the images were resized to 224 x 224 pixels for model training, and the figure `images/sample_cells.png` shows a selection of images arranged in a labeled grid. MLL23 images are not stored in this repo; for the external test they were resized to 224 x 224 pixels, and for the diagnostics some were also shrunk and padded or had their colors adjusted. The output of `06_external_test.ipynb` shows a few examples. The Barcelona dataset authors state the data is intended for research and educational purposes only.
