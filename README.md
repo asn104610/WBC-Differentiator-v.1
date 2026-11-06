@@ -17,7 +17,9 @@ Given a single cell image, the model predicts one of 8 classes: neutrophil, eosi
 - **Source:** Acevedo et al., "A dataset of microscopic peripheral blood cell images for development of automatic recognition systems," *Data in Brief*, 2020 (hosted on Mendeley Data).
 - **Size:** 17,092 JPG images, about 360 x 363 pixels, 8 classes, annotated by expert clinical pathologists.
 - **Collection:** normal cells from individuals without infection, hematologic or oncologic disease, imaged on a CellaVision DM96 at the Hospital Clinic of Barcelona.
+- **Staining and timing:** the smears were stained with May-Grünwald-Giemsa on an automated stainer, and the images were collected between 2015 and 2019.
 - **Class counts:** neutrophil 3,329 / eosinophil 3,117 / ig 2,895 / platelet 2,348 / erythroblast 1,551 / monocyte 1,420 / basophil 1,218 / lymphocyte 1,214.
+- **Neutrophil class:** the dataset paper lists only "neutrophils". The image file names use two prefixes, `BNE_` and `SNE_`, and on a visual check by the author (a Medical Laboratory Science student) they look like band and segmented neutrophils, so the class appears to contain both.
 - The images are **not** stored in this repo, apart from the sample figure. Download the dataset from the Mendeley Data page.
 
 ## Method
@@ -101,7 +103,7 @@ I ran the v2 model, with no retraining, on images from a different lab to see wh
 - erythroblast: MLL23 "normoblast"
 - ig: MLL23 metamyelocyte, myelocyte and promyelocyte (1,975 images)
 
-Platelets have no counterpart in MLL23. MLL23 band neutrophils (687 images) were left out of the headline number. The class mapping is my own and has not been reviewed by a hematologist; in particular, I have not confirmed that MLL23 "normoblast" and the Barcelona "erythroblast" class are defined the same way.
+Platelets have no counterpart in MLL23. MLL23 band neutrophils (687 images) were left out of the headline number. Because the Barcelona neutrophil class appears to include band forms (see Dataset), counting them as neutrophils would be a reasonable alternative mapping. The model called none of them neutrophil, so accuracy would be about 26.3% (6,062 of 23,009 images); the headline stays 27.2%. The class mapping is my own and has not been reviewed by a hematologist; in particular, I have not confirmed that MLL23 "normoblast" and the Barcelona "erythroblast" class are defined the same way.
 
 | MLL23 class | Called correctly |
 |---|---|
