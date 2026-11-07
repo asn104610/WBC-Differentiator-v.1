@@ -95,7 +95,7 @@ I ran the v2 model, with no retraining, on images from a different lab to see wh
 
 **Headline result:** 27.2% accuracy (6,062 of 22,322 images) on the 7 classes that match between the two datasets, against 98.6% on the home test split. Mean per-class recall was about 44%.
 
-**Data:** MLL23, from the Munich Leukemia Laboratory (288 x 288 px images, 18 classes, patients with and without blood disease). Classes were mapped to this project's classes:
+**Data:** MLL23, from the Munich Leukemia Laboratory (288 x 288 px images covering 25 x 25 µm, 18 classes). Compared with the Barcelona data, the MLL23 smears came from adults with a wide range of blood diseases (collected 2021 to 2024), were stained with the Pappenheim method and scanned on a different system (Metafer, MetaSystems, against the CellaVision DM96), and each image was labeled by one of five examiners. Classes were mapped to this project's classes:
 
 - neutrophil: MLL23 segmented neutrophils
 - eosinophil, basophil, monocyte: same names
@@ -134,12 +134,24 @@ To look for causes, I ran the model on one balanced random sample of 2,100 MLL23
 | Shift background color to Barcelona's | 49.2% | 20.4% |
 | Background shift plus shrink to 65% | 63.4% | 15.2% |
 
+I repeated the best setting on a 700-image subset (100 per class, so noise of about 4 points) and added a second Barcelona image as the background reference, to check the result does not depend on one image:
+
+| Change (700-image subset) | Accuracy | Predicted as monocyte |
+|---|---|---|
+| None (baseline) | 43.1% | 53.9% |
+| Shrink image to 65% of the frame | 54.3% | 36.7% |
+| Background shift (reference image A) plus shrink to 65% | 61.3% | 15.6% |
+| Background shift (reference image B) plus shrink to 65% | 60.9% | 15.6% |
+
+At the best setting the remaining errors were uneven. Recall was 98% for erythroblast and 90% for ig, then 66% for monocyte, 62% for basophil, 44% for neutrophil, 35% for eosinophil and 34% for lymphocyte (100 images each, so each figure is only good to about 5 points). The model now over-called erythroblast and ig, which made up about 27% and 28% of its answers against about 14% expected. The most common mix-ups were lymphocytes called erythroblast (36 of 100), eosinophils called ig (41), basophils called ig (30), and neutrophils called ig (24) or erythroblast (20).
+
 What I take from this, with caution:
 
 - Shrinking the image helped most (about 11 points at 65%), the background shift helped a little (about 4 points), and the two together reached 63.4%. Even the best case is far below the 98.6% home result.
 - The full histogram-matching attempt made things much worse. It visibly distorted the cells, so it says nothing either way about stain. I kept it in the notebook as a failed attempt.
+- A second Barcelona image as the background reference gave the same result as the first (61.3% against 60.9%). The two reference backgrounds were nearly the same color, though, so this shows the adjustment is stable across Barcelona images, not that any reference would work.
 - Not tested: stain hue of cells and nuclei, patient mix (MLL23 includes people with blood disease; the Barcelona set does not), differences in how cells are labeled, and optics or focus.
-- A label-free alarm based on the mix of predicted classes would have caught the collapse onto "monocyte", but it would not catch every error (at 63.4% accuracy the mix looked normal). This is an idea, not a tested rule.
+- A label-free alarm based on the mix of predicted classes would have caught the collapse onto "monocyte". After the adjustments the monocyte share looked normal, but the overall mix did not: ig and erythroblast made up about 27 to 28% of answers each against about 14% expected, so such an alarm would still have fired. This is an idea checked on one balanced sample, not a tested rule.
 
 The code is in `06_external_test.ipynb`.
 
@@ -173,7 +185,7 @@ Model weights are kept outside the repo in Google Drive.
 2. Create a virtual environment and install `requirements.txt`.
 3. Run notebooks 01 and 02 locally to explore and split the data.
 4. Run notebooks 03, 04 and 05 in Google Colab with a GPU (the paths in the CSVs are rewritten there).
-5. Notebook 06 also runs in Colab. It downloads about 5.4 GB of MLL23 class zips from Zenodo (roughly 20 to 35 minutes) and loads the v2 weights from Google Drive.
+5. Notebook 06 also runs in Colab. The full external test downloads about 5.4 GB of MLL23 class zips from Zenodo (this can take well over 30 minutes). The later diagnostics fetch only the 700 images they need, one request at a time, because Zenodo rejected eight parallel downloads. The v2 weights are loaded from Google Drive, and a CPU runtime is enough for the download and the 700-image diagnostics.
 
 ## License and attribution
 
