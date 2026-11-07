@@ -185,7 +185,7 @@ Model weights are kept outside the repo in Google Drive.
 2. Create a virtual environment and install `requirements.txt`.
 3. Run notebooks 01 and 02 locally to explore and split the data.
 4. Run notebooks 03, 04 and 05 in Google Colab with a GPU (the paths in the CSVs are rewritten there).
-5. Notebook 06 also runs in Colab. The full external test downloads about 5.4 GB of MLL23 class zips from Zenodo (this can take well over 30 minutes). The later diagnostics fetch only the 700 images they need, one request at a time, because Zenodo rejected eight parallel downloads. The v2 weights are loaded from Google Drive, and a CPU runtime is enough for the download and the 700-image diagnostics.
+5. Notebook 06 also runs in Colab. The full external test downloads about 5.4 GB of MLL23 class zips from Zenodo (this can take well over 30 minutes). The later diagnostics fetch only the 700 images they need, one request at a time, because Zenodo rejected eight parallel downloads. The v2 weights are loaded from Google Drive, and a CPU runtime is enough for the download and the 700-image diagnostics. Notebook 06 is a working log, not a clean pipeline: its cells are not in run order, and it keeps an interrupted full download and a failed parallel fetch (Zenodo's 429 errors) as a record.
 
 ## License and attribution
 
