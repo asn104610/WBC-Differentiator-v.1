@@ -10,11 +10,11 @@ Given a single cell image, the model predicts one of 8 classes: neutrophil, eosi
 
 ![One random test image from each class](images/sample_cells.png)
 
-*One random test image from each class, from the Acevedo et al. dataset (see "License and attribution" below). Images were arranged in a labeled grid for this figure.*
+_One random test image from each class, from the Acevedo et al. dataset (see "License and attribution" below). Images were arranged in a labeled grid for this figure._
 
 ## Dataset
 
-- **Source:** Acevedo et al., "A dataset of microscopic peripheral blood cell images for development of automatic recognition systems," *Data in Brief*, 2020 (hosted on Mendeley Data).
+- **Source:** Acevedo et al., "A dataset of microscopic peripheral blood cell images for development of automatic recognition systems," _Data in Brief_, 2020 (hosted on Mendeley Data).
 - **Size:** 17,092 JPG images, about 360 x 363 pixels, 8 classes, annotated by expert clinical pathologists.
 - **Collection:** normal cells from individuals without infection, hematologic or oncologic disease, imaged on a CellaVision DM96 at the Hospital Clinic of Barcelona.
 - **Staining and timing:** the smears were stained with May-Grünwald-Giemsa on an automated stainer, and the images were collected between 2015 and 2019.
@@ -34,9 +34,9 @@ Given a single cell image, the model predicts one of 8 classes: neutrophil, eosi
 ## Results
 
 | Model | Validation accuracy | Test accuracy |
-|---|---|---|
-| v1 | 0.981 | 0.984 |
-| v2 | 0.987 | 0.986 |
+| ----- | ------------------- | ------------- |
+| v1    | 0.981               | 0.984         |
+| v2    | 0.987               | 0.986         |
 
 The overall difference between v1 and v2 is small, about 5 images out of 2,564, and is within the range of normal variation.
 
@@ -44,16 +44,16 @@ These scores are for images from the same lab as the training data. On a second 
 
 F1 score per class on the test set:
 
-| Class | v1 | v2 |
-|---|---|---|
-| basophil | 0.981 | 0.992 |
-| eosinophil | 1.000 | 0.999 |
+| Class        | v1    | v2    |
+| ------------ | ----- | ----- |
+| basophil     | 0.981 | 0.992 |
+| eosinophil   | 1.000 | 0.999 |
 | erythroblast | 0.983 | 0.989 |
-| ig | 0.966 | 0.971 |
-| lymphocyte | 0.981 | 0.981 |
-| monocyte | 0.986 | 0.979 |
-| neutrophil | 0.977 | 0.980 |
-| platelet | 0.997 | 0.997 |
+| ig           | 0.966 | 0.971 |
+| lymphocyte   | 0.981 | 0.981 |
+| monocyte     | 0.986 | 0.979 |
+| neutrophil   | 0.977 | 0.980 |
+| platelet     | 0.997 | 0.997 |
 
 ## What the errors look like
 
@@ -61,7 +61,7 @@ About half of the mistakes (18 of 36 for v2 on the test set) involve one pair: *
 
 ![v2 confusion matrix on the test set](images/confusion_matrix_v2.png)
 
-*Confusion matrix for v2 on the test set. Rows are the true cell type, columns are what the model said, and the diagonal is correct answers.*
+_Confusion matrix for v2 on the test set. Rows are the true cell type, columns are what the model said, and the diagonal is correct answers._
 
 v2 shifted that decision line: ig recall rose from 0.959 to 0.982, while ig precision fell from 0.974 to 0.962 and neutrophil recall fell from 0.976 to 0.968. In other words, v2 flags more borderline cells as immature.
 
@@ -71,21 +71,21 @@ v2 shifted that decision line: ig recall rose from 0.959 to 0.982, while ig prec
 
 ![Grad-CAM heat maps on four correctly classified test cells](images/heatmaps_correct.png)
 
-*Four correctly classified test cells (top row) with the model's heat map below each.*
+_Four correctly classified test cells (top row) with the model's heat map below each._
 
 On neutrophils that v2 called ig, the heat also lands on the cell itself, but the model is less sure of itself: confidence was 53% to 94% in the four examples shown, against 99% to 100% on the easy cases above.
 
 ![Test-set neutrophils that v2 labeled as ig](images/heatmaps_neutrophil_called_ig.png)
 
-*Test-set neutrophils that v2 labeled as ig, with the heat map for the model's answer.*
+_Test-set neutrophils that v2 labeled as ig, with the heat map for the model's answer._
 
 **Confidence as a flag for review.** Cells where the model's top confidence falls below a threshold are the ones most likely to be wrong. On the test set (2,564 cells, 36 mistakes for v2):
 
 | Flag cells below | Cells flagged | Mistakes caught |
-|---|---|---|
-| 0.90 | 3.2% | 22 of 36 |
-| 0.95 | 4.6% | 28 of 36 |
-| 0.99 | 9.4% | 32 of 36 |
+| ---------------- | ------------- | --------------- |
+| 0.90             | 3.2%          | 22 of 36        |
+| 0.95             | 4.6%          | 28 of 36        |
+| 0.99             | 9.4%          | 32 of 36        |
 
 Four mistakes were made with 99% or higher confidence, so confidence alone cannot catch every error. This was an exploratory look at the test set. A threshold for real use would need to be chosen on the validation set and then confirmed. On a second lab's images this check did not hold up (see the external test below).
 
@@ -105,15 +105,15 @@ I ran the v2 model, with no retraining, on images from a different lab to see wh
 
 Platelets have no counterpart in MLL23. MLL23 band neutrophils (687 images) were left out of the headline number. Because the Barcelona neutrophil class appears to include band forms (see Dataset), counting them as neutrophils would be a reasonable alternative mapping. The model called none of them neutrophil, so accuracy would be about 26.3% (6,062 of 23,009 images); the headline stays 27.2%. The class mapping is my own and has not been reviewed by a hematologist; in particular, I have not confirmed that MLL23 "normoblast" and the Barcelona "erythroblast" class are defined the same way.
 
-| MLL23 class | Called correctly |
-|---|---|
-| normoblast (erythroblast) | 95% |
-| monocyte | 93% |
-| basophil | 57% |
-| ig | 54% |
-| lymphocyte | 4% |
-| eosinophil | 3% |
-| neutrophil (segmented) | 0.5% |
+| MLL23 class               | Called correctly |
+| ------------------------- | ---------------- |
+| normoblast (erythroblast) | 95%              |
+| monocyte                  | 93%              |
+| basophil                  | 57%              |
+| ig                        | 54%              |
+| lymphocyte                | 4%               |
+| eosinophil                | 3%               |
+| neutrophil (segmented)    | 0.5%             |
 
 About 65% of all predictions were "monocyte". The 93% monocyte recall mostly reflects that it was the model's default answer: only about 16% of its monocyte calls were right.
 
@@ -123,25 +123,25 @@ About 65% of all predictions were "monocyte". The 93% monocyte recall mostly ref
 
 To look for causes, I ran the model on one balanced random sample of 2,100 MLL23 images (300 for each of the 7 classes) with simple changes, one run each. These are diagnostics, not an improved model: I chose the settings while looking at MLL23 results, so the numbers are descriptive. With 7 classes, guessing would score about 14%, and differences under about 2 points are within noise. The official external result stays 27.2%.
 
-| Change to the MLL23 images | Accuracy | Predicted as monocyte |
-|---|---|---|
-| None (baseline) | 45.0% | 52.8% |
-| Shrink image to 80% of the frame (padded border) | 51.0% | 51.0% |
-| Shrink image to 65% of the frame | 56.5% | 35.0% |
-| Shrink image to 50% of the frame | 46.9% | 19.7% |
-| Match full color histogram to one Barcelona image | 17.1% | 1.6% |
-| Same, plus shrink to 65% | 19.2% | 0.1% |
-| Shift background color to Barcelona's | 49.2% | 20.4% |
-| Background shift plus shrink to 65% | 63.4% | 15.2% |
+| Change to the MLL23 images                        | Accuracy | Predicted as monocyte |
+| ------------------------------------------------- | -------- | --------------------- |
+| None (baseline)                                   | 45.0%    | 52.8%                 |
+| Shrink image to 80% of the frame (padded border)  | 51.0%    | 51.0%                 |
+| Shrink image to 65% of the frame                  | 56.5%    | 35.0%                 |
+| Shrink image to 50% of the frame                  | 46.9%    | 19.7%                 |
+| Match full color histogram to one Barcelona image | 17.1%    | 1.6%                  |
+| Same, plus shrink to 65%                          | 19.2%    | 0.1%                  |
+| Shift background color to Barcelona's             | 49.2%    | 20.4%                 |
+| Background shift plus shrink to 65%               | 63.4%    | 15.2%                 |
 
 I repeated the best setting on a 700-image subset (100 per class, so noise of about 4 points) and added a second Barcelona image as the background reference, to check the result does not depend on one image:
 
-| Change (700-image subset) | Accuracy | Predicted as monocyte |
-|---|---|---|
-| None (baseline) | 43.1% | 53.9% |
-| Shrink image to 65% of the frame | 54.3% | 36.7% |
-| Background shift (reference image A) plus shrink to 65% | 61.3% | 15.6% |
-| Background shift (reference image B) plus shrink to 65% | 60.9% | 15.6% |
+| Change (700-image subset)                               | Accuracy | Predicted as monocyte |
+| ------------------------------------------------------- | -------- | --------------------- |
+| None (baseline)                                         | 43.1%    | 53.9%                 |
+| Shrink image to 65% of the frame                        | 54.3%    | 36.7%                 |
+| Background shift (reference image A) plus shrink to 65% | 61.3%    | 15.6%                 |
+| Background shift (reference image B) plus shrink to 65% | 60.9%    | 15.6%                 |
 
 At the best setting the remaining errors were uneven. Recall was 98% for erythroblast and 90% for ig, then 66% for monocyte, 62% for basophil, 44% for neutrophil, 35% for eosinophil and 34% for lymphocyte (100 images each, so each figure is only good to about 5 points). The model now over-called erythroblast and ig, which made up about 27% and 28% of its answers against about 14% expected. The most common mix-ups were lymphocytes called erythroblast (36 of 100), eosinophils called ig (41), basophils called ig (30), and neutrophils called ig (24) or erythroblast (20).
 
@@ -192,9 +192,47 @@ Model weights are kept outside the repo in Google Drive.
 The cell images come from two datasets, both licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). This project is not endorsed by the authors of either dataset.
 
 - **Dataset:** Acevedo A, Merino A, Alférez S, Molina Á, Boldú L, Rodellar J. "A dataset for microscopic peripheral blood cell images for development of automatic recognition systems." Mendeley Data, V1, 2020. DOI: [10.17632/snkd93bnjr.1](https://data.mendeley.com/datasets/snkd93bnjr/1)
-- **Data article:** Acevedo A, Merino A, Alférez S, Molina Á, Boldú L, Rodellar J. "A dataset of microscopic peripheral blood cell images for development of automatic recognition systems." *Data in Brief*. 2020;30:105474. doi: [10.1016/j.dib.2020.105474](https://doi.org/10.1016/j.dib.2020.105474)
-- **Related paper:** Acevedo A, Alférez S, Merino A, Puigví L, Rodellar J. "Recognition of peripheral blood cell images using convolutional neural networks." *Computer Methods and Programs in Biomedicine*. 2019;180:105020. doi: [10.1016/j.cmpb.2019.105020](https://doi.org/10.1016/j.cmpb.2019.105020)
+- **Data article:** Acevedo A, Merino A, Alférez S, Molina Á, Boldú L, Rodellar J. "A dataset of microscopic peripheral blood cell images for development of automatic recognition systems." _Data in Brief_. 2020;30:105474. doi: [10.1016/j.dib.2020.105474](https://doi.org/10.1016/j.dib.2020.105474)
+- **Related paper:** Acevedo A, Alférez S, Merino A, Puigví L, Rodellar J. "Recognition of peripheral blood cell images using convolutional neural networks." _Computer Methods and Programs in Biomedicine_. 2019;180:105020. doi: [10.1016/j.cmpb.2019.105020](https://doi.org/10.1016/j.cmpb.2019.105020)
 - **External test dataset (MLL23):** Shetab Boushehri S, Gruber A, Sun X, Kazeminia S, Matek C, Hehr M, Spiekermann K, Pohlkamp C, Haferlach T, Marr C. "A large publicly available single-cell peripheral blood dataset (MLL23)." Zenodo, version v1. DOI: [10.5281/zenodo.14277609](https://doi.org/10.5281/zenodo.14277609)
-- **MLL23 paper:** Shetab Boushehri S, Kazeminia S, et al. "A large expert-annotated single-cell peripheral blood dataset for hematological disease diagnostics." *Scientific Data*. 2025;12:1773. doi: [10.1038/s41597-025-06223-x](https://doi.org/10.1038/s41597-025-06223-x)
+- **MLL23 paper:** Shetab Boushehri S, Kazeminia S, et al. "A large expert-annotated single-cell peripheral blood dataset for hematological disease diagnostics." _Scientific Data_. 2025;12:1773. doi: [10.1038/s41597-025-06223-x](https://doi.org/10.1038/s41597-025-06223-x)
 
 **Changes made:** the images were resized to 224 x 224 pixels for model training, and the figure `images/sample_cells.png` shows a selection of images arranged in a labeled grid. MLL23 images are not stored in this repo; for the external test they were resized to 224 x 224 pixels, and for the diagnostics some were also shrunk and padded or had their colors adjusted. The output of `06_external_test.ipynb` shows a few examples. The Barcelona dataset authors state the data is intended for research and educational purposes only.
+
+## Few-shot adaptation test on MLL23
+
+**Question.** The v2 classifier was trained on the Barcelona (PBC) images. Can it be made to work on a second lab's images (MLL23) with a small amount of labeled data from that lab?
+
+**Protocol (fixed before the results were seen)**
+
+- Classes: the 7 matching classes (basophil, eosinophil, erythroblast, ig, lymphocyte, monocyte, neutrophil). `neutrophil_band` is excluded.
+- The 2,100 images used earlier for diagnostics (seed 0) were excluded from every new split.
+- Frozen test set: 700 images, 100 per class (seed 42), never used for tuning.
+- Adaptation set: 98 images, 14 per class (seed 7).
+- Two fine-tuning settings were compared by 7-fold cross-validation on the 98 images: (A) final layer only, (B) last block plus final layer. B won (0.847 vs 0.765 in cross-validation).
+- Preprocessing for the fixed and adapted models: image shrunk to 65% of the frame, background color matched to Barcelona image BNE_56697.
+- The frozen test set was scored three times, declared in advance: plain v2, v2 with the preprocessing, and the adapted model.
+
+**Results on the 700 frozen test images**
+
+| Model                                                          | Accuracy |
+| -------------------------------------------------------------- | -------- |
+| v2, no changes                                                 | 0.441    |
+| v2 + preprocessing                                             | 0.636    |
+| v2 + preprocessing + adaptation (setting B, 98 labeled images) | 0.869    |
+
+Recall by class for the adapted model: erythroblast 0.98, lymphocyte 0.93, ig 0.89, neutrophil 0.89, basophil 0.87, monocyte 0.77, eosinophil 0.75.
+
+**Limitations**
+
+- One target dataset only. Consistency across several labs has not been tested.
+- A single training run (seed 0).
+- MLL23 images from the same patient may appear in both the adaptation and test sets. I could not check this.
+- Forgetting on the Barcelona images has not been checked.
+- Adaptation needed 98 labeled images from the new lab. Without it, the best result was 0.636.
+- The test set is balanced, so accuracy on the natural class mix would differ.
+- The frozen test set is now used up. Further experiments need new untouched images.
+
+Educational project; not for clinical use.
+
+**Files:** split lists and predictions are in `mll23_splits_and_results/`. Images and model weights are not included.
