@@ -236,3 +236,41 @@ Recall by class for the adapted model: erythroblast 0.98, lymphocyte 0.93, ig 0.
 Educational project; not for clinical use.
 
 **Files:** split lists and predictions are in `mll23_splits_and_results/`. Images and model weights are not included.
+
+## Second external test: Raabin-WBC (split by sample)
+
+**Why.** The MLL23 test could not be split by patient. Raabin-WBC lets me test adaptation more strictly, with test images taken from different samples than the adaptation images.
+
+**Data.** Raabin-WBC cropped, double-labeled images (Train + TestA, 14,514 images, 5 classes). The images are not included here. They are available from raabindata.com under that site's terms. Dataset paper: "A large dataset of white blood cells containing cell locations and types, along with segmented nuclei and cytoplasm", Scientific Reports, January 2022.
+
+**Sample identifier.** I treated the part of each file name before the first underscore as a sample (slide) ID. This is an inference from the file names, not something the dataset documents. Supporting it: the paper's own Train/TestA split mostly separates these IDs for neutrophils, lymphocytes and monocytes.
+
+**Protocol (declared before results)**
+
+- The 56 non-basophil sample IDs were split at random: 14 on the adaptation side, 42 on the test side (seed 0).
+- Primary classes: eosinophil, lymphocyte, monocyte, neutrophil. Basophils come from 4 date-style IDs (one sample) and cannot be split by sample, so they are reported separately and not counted.
+- Fine-tuning settings (preprocessing, and which layers to train) were chosen by 5-fold cross-validation on the adaptation images only. Chosen: scale 0.65 + background match, training the last block and final layer. Success bar set in advance: 80% on the primary test.
+
+**Results**
+
+| Test set                                       | Model                          | Accuracy (4 classes)      |
+| ---------------------------------------------- | ------------------------------ | ------------------------- |
+| First test (400 independent images)            | v2, no changes                 | 0.502                     |
+| First test                                     | adapted, 100 adaptation images | 0.762 (below the 80% bar) |
+| Follow-up, fresh test (800 independent images) | v2, no changes                 | 0.500                     |
+| Follow-up                                      | adapted, 100 images            | 0.765                     |
+| Follow-up                                      | adapted, 200 images            | 0.848                     |
+
+Per-class recall for the 200-image model: neutrophil 0.89, lymphocyte 0.96, eosinophil 0.775, monocyte 0.765.
+
+**Reading.** With 100 adaptation images the 80% bar was missed on both test sets. It was met only with 200 images, twice the budget used for MLL23 (98 images). The follow-up question was chosen after the first test missed, and it used new images.
+
+**Limitations**
+
+- One training run (seed 0). Noise estimates assume independent images, which they are not.
+- The extra adaptation images came from the same 14 samples, so I cannot separate "more images" from "more variety".
+- Eosinophils are dominated by one sample (about 66% of them), which is on the test side.
+- Only 4 classes are scored; Raabin has no erythroblast or immature granulocyte classes. Both test sets are now used up.
+- Educational project; not for clinical use.
+
+**Files.** Split lists and predictions are in `raabin_splits_and_results/`. Images and model weights are not included.
