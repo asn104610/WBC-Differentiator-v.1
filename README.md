@@ -274,3 +274,44 @@ Per-class recall for the 200-image model: neutrophil 0.89, lymphocyte 0.96, eosi
 - Educational project; not for clinical use.
 
 **Files.** Split lists and predictions are in `raabin_splits_and_results/`. Images and model weights are not included.
+
+## Third external test: KU-Optofil PBC (Koc University Hospital)
+
+**Data.** KU-Optofil PBC, Zenodo record 17333317 (CC BY 4.0): peripheral blood cell images from a Sysmex DI-60, May-Grunwald-Giemsa, 368x368. Image counts disagree across sources (31,484 metadata rows, 31,488 images in the zip, 31,489 in the paper). I used the patient-level metadata file; the image-level folder layout and the patient-level file disagree for some patients. Dataset paper: Scientific Data, 2026 (authors not recorded here; add before publishing).
+
+**Classes.** 7 classes matched to the model. ig = metamyelocyte + myelocyte (this dataset has no promyelocyte class, so ig is narrower than in the MLL23 test). Excluded: band neutrophil, reactive lymphocyte, giant platelet, blast, platelet cluster.
+
+**Protocol (declared before scoring).** Frozen test set of 700 images (100 per class, seed 42). Adaptation budget of 98 images (14 per class, seed 7). Settings were chosen by 7-fold cross-validation on the 98 images only: {plain, fixes} x {final layer only (A), final layer + layer4 (B)}; highest CV accuracy wins, and the simpler setting wins if the top two are within 5 points. Each model was scored once on the test set. Success bar: 80%.
+
+**Cross-validation (98 adaptation images).**
+
+| Setting | CV accuracy |
+|---|---|
+| no adaptation, plain | 0.755 |
+| no adaptation, fixes | 0.561 |
+| plain + A | 0.949 |
+| plain + B | 0.949 |
+| fixes + A | 0.857 |
+| fixes + B | 0.908 |
+
+Plain + A was chosen by the rule (tie within 5 points, simpler wins). The preprocessing fixes, which were tuned on MLL23, lowered the unadapted score here, as they did on Raabin.
+
+**Test results (frozen 700 images).**
+
+| Model | Adaptation images | Accuracy |
+|---|---|---|
+| plain v2 | 0 | 0.810 |
+| plain v2, final layer fine-tuned | 98 | 0.929 |
+
+Adapted recall: basophil 0.98, eosinophil 0.99, lymphocyte 0.98, neutrophil 0.95, ig 0.89, erythroblast 0.86, monocyte 0.85.
+
+**Patient-ID caveat (found after scoring).** 294 of the 700 test images (42%) have patient ID "unknown" in the split file; none of the adaptation images do. All of the unknown-ID images are in basophil, eosinophil, erythroblast and ig. No known patient ID appears on both sides, but I could not rule out that unknown-ID test images come from patients who also appear in the adaptation set, so this is not a verified patient-level split. A post hoc breakdown (not a pre-declared analysis) gave, on the 406 known-ID test images: plain 0.798, adapted 0.921; on the 294 unknown-ID images: plain 0.827, adapted 0.939. The two slices have very different class mixes, so they should not be compared directly.
+
+**Limitations.**
+- One training seed; seed variance not measured.
+- Noise on 700 images is about +/-3.5 points (a floor that assumes independent images); per class it is larger.
+- Erythroblast adaptation images come from only 2 patients; eosinophil test images from few patients. Per-class patient counts may treat "unknown" as one patient (unchecked).
+- Adaptation budgets differ across the three external datasets (MLL23 98, Raabin 100 and 200, KU 98).
+- Cross-validation folds were not split by patient, so CV scores are optimistic compared with test scores.
+- Forgetting on the original Barcelona images was not tested for the adapted model.
+- Educational project, not for clinical use.
