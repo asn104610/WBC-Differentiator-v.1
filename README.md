@@ -342,3 +342,26 @@ All four adapted models are notable drops by the declared bar. Noise at n=2,564 
 **Takeaway.** Each adapted model gained accuracy on its target lab and lost some on the original one, by 2.7 to 43 points. They are lab-specific tools, not one model that works everywhere. Which factor drives the loss (class coverage, lab, or setting A versus B) is not isolated by this design.
 
 **Limitations.** One training seed. The home test split was reused as a reference, not as a fresh test. Models differ in adaptation size, class coverage and setting, so the comparison between them is descriptive. Educational project, not for clinical use.
+
+## Consistency across external datasets (summary)
+
+**Goal and bar.** Make the classifier work on other labs' images: at least 80% on a frozen test set, consistently across datasets. Small adaptation was allowed (fine-tuning on a limited number of labeled images from each new lab). The bar and the adaptation rule were declared before scoring; they were not changed after seeing results.
+
+**Results, with the adaptation budget beside every number.**
+
+| Dataset | Classes | Split quality | Plain v2 [0 images] | Adapted | 80% bar | Barcelona accuracy after adaptation (v2: 0.986) |
+|---|---|---|---|---|---|---|
+| MLL23 | 7 | random; patient IDs unknown | 0.441 | 0.869 [98] | met | 0.932 |
+| Raabin-WBC | 4 independent | by inferred sample | 0.502 | 0.762 [100] | missed | 0.575 |
+| Raabin-WBC (follow-up) | 4 independent | by inferred sample, fresh test set | 0.500 | 0.765 [100], 0.848 [200] | missed at 100, met at 200 | 0.575 [100], 0.552 [200] |
+| KU-Optofil | 7 | by patient, but 42% of test images have unknown IDs | 0.810 | 0.929 [98] | met | 0.959 |
+
+**What the table says.**
+- With no adaptation, plain v2 met the bar on one dataset only (KU, 0.810, and 0.798 on its 406 known-ID images, so at the bar rather than clearly above it).
+- With about 100 labeled images from the target lab, adaptation reached the bar on 2 of 3 datasets (MLL23 and KU). On Raabin it missed at 100 images and reached 0.848 at 200 images.
+- The Raabin follow-up was chosen after the first test missed the bar. The 200-image budget is twice the declared 100, and the extra images came from the same 14 adaptation samples, so more images and more variety cannot be separated. Both budgets are reported rather than only the favorable one.
+- Every adapted model lost accuracy on the original Barcelona images (2.7 to 43 points), so the result is one adapted model per lab, not one model that works everywhere.
+
+**Why the rows are not directly comparable.** Class sets differ (7, 4 and 7 classes, with the 4-class Raabin task easier to guess by chance). Split quality differs: MLL23 may share patients between adaptation and test sets (unchecked), Raabin sample IDs are inferred from file names, and KU has unknown patient IDs on 294 of 700 test images. Test-set sizes differ (700, 400, 800, 700). Adaptation budgets differ (98, 100, 200, 98).
+
+**Limitations.** One training seed everywhere; seed variance not measured. Noise estimates assume independent images and are floors. Each frozen test set was scored once and is spent. Rare-class results rest on very few patients or samples. Educational project, not for clinical use.
