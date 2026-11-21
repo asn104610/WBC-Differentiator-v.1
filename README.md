@@ -313,5 +313,32 @@ Adapted recall: basophil 0.98, eosinophil 0.99, lymphocyte 0.98, neutrophil 0.95
 - Erythroblast adaptation images come from only 2 patients; eosinophil test images from few patients. Per-class patient counts may treat "unknown" as one patient (unchecked).
 - Adaptation budgets differ across the three external datasets (MLL23 98, Raabin 100 and 200, KU 98).
 - Cross-validation folds were not split by patient, so CV scores are optimistic compared with test scores.
-- Forgetting on the original Barcelona images was not tested for the adapted model.
+- Forgetting on the original Barcelona images was measured afterward (see the forgetting-check section below): the KU-adapted model lost 2.7 points there.
 - Educational project, not for clinical use.
+
+## Forgetting check: adapted models on the original Barcelona images
+
+**Question.** Did fine-tuning on other labs' images make the model worse on the original (Barcelona) images?
+
+**Protocol (declared before scoring).** The four adapted weights were each scored once on the 2,564-image home test split, plain resize first, plus each model's own preprocessing ("fixes") where it was trained with it. Plain v2 (0.986) was rescored once as a pipeline check and reproduced 0.986. The home test split was already spent on v2, so it serves here only as a reference for forgetting; nothing was tuned or selected on it. Declared bars: a drop of 1 point or less is no meaningful forgetting, more than 2 points is notable, in between is inconclusive.
+
+**Results (Barcelona test, 2,564 images; adaptation budget in brackets).**
+
+| Model | Plain resize | Drop vs v2 | With its own "fixes" preprocessing |
+|---|---|---|---|
+| v2 [0] | 0.986 | 0.000 | n/a |
+| MLL23 B [98] | 0.932 | 0.054 | 0.671 |
+| Raabin fixes B [100] | 0.575 | 0.411 | 0.516 |
+| Raabin fixes B [200] | 0.552 | 0.434 | 0.447 |
+| KU plain A [98] | 0.959 | 0.027 | n/a |
+
+All four adapted models are notable drops by the declared bar. Noise at n=2,564 is about +/-0.5 points (a floor that assumes independent images).
+
+**Per-class findings (plain resize).**
+- Both Raabin models fell to 0.0 recall on erythroblast, ig and platelet. Their adaptation sets had only 4 classes, so fine-tuning probably suppressed the missing classes; this is an explanation I did not test.
+- MLL23: platelet 0.997 to 0.844; ig 0.982 to 0.894; erythroblast 0.987 to 0.901.
+- KU: erythroblast 0.987 to 0.820 and monocyte 0.995 to 0.873; platelet held at 0.986.
+
+**Takeaway.** Each adapted model gained accuracy on its target lab and lost some on the original one, by 2.7 to 43 points. They are lab-specific tools, not one model that works everywhere. Which factor drives the loss (class coverage, lab, or setting A versus B) is not isolated by this design.
+
+**Limitations.** One training seed. The home test split was reused as a reference, not as a fresh test. Models differ in adaptation size, class coverage and setting, so the comparison between them is descriptive. Educational project, not for clinical use.
