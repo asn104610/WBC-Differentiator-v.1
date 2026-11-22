@@ -227,7 +227,7 @@ Recall by class for the adapted model: erythroblast 0.98, lymphocyte 0.93, ig 0.
 
 - One target dataset only. Consistency across several labs has not been tested.
 - A single training run (seed 0).
-- MLL23 images from the same patient may appear in both the adaptation and test sets. I could not check this.
+- MLL23 images from the same patient may appear in both the adaptation and test sets. I could not check this. The dataset paper also states that some cells appear in more than one image (different focus or cropping), so views of the same cell could fall on both sides of the split as well. The paper's data description lists only a class name and a unique identifier in each file name, with no patient identifiers.
 - Forgetting on the Barcelona images has not been checked.
 - Adaptation needed 98 labeled images from the new lab. Without it, the best result was 0.636.
 - The test set is balanced, so accuracy on the natural class mix would differ.
